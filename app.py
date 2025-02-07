@@ -2,7 +2,7 @@ import os
 import numpy as np
 import base64
 import requests
-from flask import Flask, request, render_template, redirect, url_for, flash, send_from_directory
+from flask import Flask, request, render_template, send_from_directory
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 from werkzeug.utils import secure_filename
