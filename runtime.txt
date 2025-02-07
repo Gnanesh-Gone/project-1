@@ -1,0 +1,10 @@
+# Create a virtual environment with Python 3.10
+python3.10 -m venv myenv
+source myenv/bin/activate  # On Linux/Mac
+myenv\Scripts\activate  # On Windows
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the application locally to verify everything works
+python app.py
