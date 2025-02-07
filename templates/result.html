@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediction Result</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(120deg, #a18cd1, #fbc2eb);
+            background-size: cover;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 90%;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 36px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 15px;
+            margin: 20px 0;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .result {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px 0;
+            color: #fff; /* Changed color to white */
+            background: rgba(231, 76, 60, 0.2);
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .prediction-info {
+            font-size: 16px;
+            color: #333;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 25px;
+            font-size: 16px;
+            color: #fff;
+            text-decoration: none;
+            background: linear-gradient(120deg, #84fab0, #8fd3f4);
+            border-radius: 25px;
+            transition: all 0.4s ease-in-out;
+        }
+
+        a:hover {
+            background: linear-gradient(120deg, #8fd3f4, #84fab0);
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Styling for the logout link */
+        .logout-link {
+            display: inline-block;
+            margin-top: 30px; /* Add spacing from the content */
+            padding: 12px 25px;
+            font-size: 16px;
+            color: #fff;
+            text-decoration: none;
+            background: linear-gradient(120deg, #ff9a9e, #ff6f61);
+            border-radius: 25px;
+            transition: all 0.4s ease-in-out;
+        }
+
+        .logout-link:hover {
+            background: linear-gradient(120deg, #ff6f61, #ff9a9e);
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .footer {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Prediction Results</h1>
+        <img src="data:image/jpeg;base64,{{ image_data }}" alt="Uploaded X-ray">
+        <div class="result">
+            <p>Diagnosis: {{ prediction }}</p>
+        </div>
+        <div class="prediction-info">
+            <p><strong>Details:</strong> The AI model predicts that the uploaded X-ray shows signs of {{ prediction }}.</p>
+            <p>For any concerns, please consult with a medical professional.</p>
+        </div>
+        <a href="/">Go Back</a>
+        
+        <!-- Logout link placed at the bottom -->
+        <a href="/logout" class="logout-link">Logout</a>
+
+        <div class="footer">
+            <p>&copy; 2025 Pneumonia & Covid Detection App. Designed with 💙 by Our Team</p>
+        </div>
+    </div>
+
+</body>
+</html>
