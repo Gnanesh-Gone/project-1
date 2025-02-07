@@ -1,98 +1,48 @@
-import os
+from flask import Flask, request, jsonify, render_template
+import tensorflow as tf
+from PIL import Image
 import numpy as np
-import base64
-import requests
-from flask import Flask, request, render_template, send_from_directory
-from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing import image
-from werkzeug.utils import secure_filename
 
-# Initialize the Flask application
 app = Flask(__name__)
 
-# Secret key for session management (optional)
-app.secret_key = 'c9f2d37b7c3e4a7b9f58d8ebf5b1b024'
+# Load your pre-trained model (replace 'model.h5' with your actual model file)
+model = tf.keras.models.load_model('model.h5')  # Make sure to replace this path with your model file
 
-# GitHub URL where the model is stored
-MODEL_URL = "https://raw.githubusercontent.com/Gnanesh-Gone/project-1/main/model/covid_pneumonia_normal_cnn_model.h5"
-
-# File upload configuration
-UPLOAD_FOLDER = 'uploads'
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
-# Allowed file extensions
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
-
-# Check if the file is allowed
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-# Function to download the model file from GitHub
-def download_model():
-    model_path = os.path.join(os.getcwd(), 'model', 'covid_pneumonia_normal_cnn_model.h5')
-    
-    if not os.path.exists(model_path):
-        os.makedirs(os.path.dirname(model_path), exist_ok=True)
-        # Download model file from GitHub
-        response = requests.get(MODEL_URL)
-        with open(model_path, 'wb') as model_file:
-            model_file.write(response.content)
-    return model_path
-
-# Load the trained model
-model = load_model(download_model())
-
-# Route to serve uploaded files from the 'uploads' folder
-@app.route('/uploads/<filename>')
-def uploaded_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
-
-# Route to check if the user is logged in before accessing index (removed login check)
+# Route for home page (serving the front-end HTML)
 @app.route('/')
-def index():
+def home():
     return render_template('index.html')
 
+# Route to handle image upload and prediction
 @app.route('/predict', methods=['POST'])
 def predict():
+    # Check if the file is present in the request
     if 'file' not in request.files:
-        return 'No file part'
+        return jsonify({'error': 'No file part'})
+
+    # Get the file from the request
     file = request.files['file']
-
-    # Check if file is allowed and process the image
-    if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(file_path)
-
-        # Preprocess the image
-        img = image.load_img(file_path, target_size=(150, 150))
-        img_array = image.img_to_array(img)
-        img_array = np.expand_dims(img_array, axis=0)
-        img_array = img_array / 255.0  # Rescale the image (same as in training)
-
-        # Get the prediction for the X-ray image
-        prediction_probabilities = model.predict(img_array)
-        class_labels = {0: 'COVID', 1: 'Normal', 2: 'Pneumonia'}
-        prediction_class = np.argmax(prediction_probabilities)
-        prediction = class_labels[prediction_class]
-
-        # Convert image to Base64 to embed in HTML
-        with open(file_path, "rb") as img_file:
-            img_data = img_file.read()
-            img_base64 = base64.b64encode(img_data).decode('utf-8')
-
-        # Render the result page with prediction and Base64 image
-        return render_template('result.html', prediction=prediction, image_data=img_base64)
-
-    return 'Invalid file format'
-
-# Run the app
-if __name__ == '__main__':
-    # Get the port from environment variable (required by Render)
-    port = int(os.environ.get("PORT", 5000))
-
-    # Ensure upload folder exists
-    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
     
-    # Run the app on all available IPs at the specified port
-    app.run(debug=True, host='0.0.0.0', port=port)
+    # If no file was selected, return an error
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'})
+
+    # Open the uploaded image
+    image = Image.open(file)
+    image = image.resize((224, 224))  # Resize to match the model's input size
+    image = np.array(image) / 255.0  # Normalize the image
+    image = np.expand_dims(image, axis=0)  # Add batch dimension
+
+    # Make the prediction using the model
+    prediction = model.predict(image)
+    class_idx = np.argmax(prediction, axis=1)  # Get index of class with highest probability
+    
+    # Mapping class index to class name
+    class_names = ['Normal', 'Pneumonia', 'COVID']
+    predicted_class = class_names[class_idx[0]]
+
+    # Return prediction as JSON
+    return jsonify({'prediction': predicted_class})
+
+if __name__ == '__main__':
+    app.run(debug=True)
