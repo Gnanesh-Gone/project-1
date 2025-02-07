@@ -2,7 +2,7 @@ import os
 import numpy as np
 import base64
 import requests
-from flask import Flask, request, render_template, redirect, url_for, session, flash, send_from_directory
+from flask import Flask, request, render_template, redirect, url_for, flash, send_from_directory
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 from werkzeug.utils import secure_filename
@@ -10,11 +10,8 @@ from werkzeug.utils import secure_filename
 # Initialize the Flask application
 app = Flask(__name__)
 
-# Secret key for session management
+# Secret key for session management (optional)
 app.secret_key = 'c9f2d37b7c3e4a7b9f58d8ebf5b1b024'
-
-# Dummy user data (replace with actual user authentication logic)
-users = {'admin': 'password123'}
 
 # GitHub URL where the model is stored
 MODEL_URL = "https://raw.githubusercontent.com/Gnanesh-Gone/project-1/main/model/covid_pneumonia_normal_cnn_model.h5"
@@ -50,38 +47,10 @@ model = load_model(download_model())
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
-# Route for login page
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        
-        # Check if username exists
-        if username in users and users[username] == password:
-            session['logged_in'] = True  # Set session flag for authentication
-            session['username'] = username  # Store username in session (optional)
-            flash('Login successful!', 'success')
-            return redirect(url_for('index'))  # Redirect to index page
-
-        flash('Invalid username or password', 'error')
-
-    return render_template('login.html')
-
-# Route to check if the user is logged in before accessing index
+# Route to check if the user is logged in before accessing index (removed login check)
 @app.route('/')
 def index():
-    if 'logged_in' not in session or not session['logged_in']:
-        flash('Please log in first!', 'warning')
-        return redirect(url_for('login'))
     return render_template('index.html')
-
-@app.route('/logout')
-def logout():
-    session.pop('logged_in', None)
-    session.pop('username', None)  # Optional
-    flash('You have been logged out.', 'info')
-    return redirect(url_for('login'))   
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -119,6 +88,11 @@ def predict():
 
 # Run the app
 if __name__ == '__main__':
+    # Get the port from environment variable (required by Render)
+    port = int(os.environ.get("PORT", 5000))
+
     # Ensure upload folder exists
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-    app.run(debug=True)
+    
+    # Run the app on all available IPs at the specified port
+    app.run(debug=True, host='0.0.0.0', port=port)
